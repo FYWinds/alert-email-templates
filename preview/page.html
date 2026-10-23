@@ -66,24 +66,46 @@
   .links { display: flex; gap: 14px; font-size: 13px; margin-top: 12px; }
   .links a { color: var(--muted); }
   .links a:hover { color: var(--text); }
-  .frames { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; padding: 9px; }
-  figure { margin: 0; }
-  figure iframe { display: block; width: 375px; height: 640px; border: 0; border-radius: 28px;
-                  background: #f2f4f7; box-shadow: 0 0 0 8px #1a1f2a, 0 0 0 9px #2b3242, 0 24px 60px #0008; }
-  figure:nth-child(2) iframe { background: #0b0d12; }
+  .frames { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; padding: 11px; }
+
+  /* Phone view: a fixed iPhone-sized screen; the email scrolls inside it. */
+  .device { margin: 0; width: 375px; height: 812px; border-radius: 48px; overflow: hidden; display: flex;
+            flex-direction: column; background: var(--scr); color: var(--ink);
+            box-shadow: 0 0 0 10px #1a1f2a, 0 0 0 11px #2b3242, 0 24px 60px #0008;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .device.light { --scr: #ffffff; --ink: #000000; --sub: #8e8e93; --sep: #e5e5ea; --tint: #007aff; --av: #a1a1aa; --mail: #f2f4f7; }
+  .device.dark { --scr: #000000; --ink: #ffffff; --sub: #8e8e93; --sep: #2c2c2e; --tint: #0a84ff; --av: #52525b; --mail: #0b0d12; }
+  .status { flex: none; position: relative; height: 54px; display: flex; align-items: center; justify-content: space-between;
+            padding: 4px 30px 0 40px; font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+  .island { position: absolute; top: 11px; left: 50%; width: 122px; height: 35px; margin-left: -61px; border-radius: 20px; background: #000; }
+  .device.dark .island { box-shadow: inset 0 0 0 1px #1c1c1e; }
+  .status svg { display: block; height: 12px; fill: currentColor; }
+  .status .icons { display: flex; gap: 6px; align-items: center; }
+  .mailnav { flex: none; height: 40px; display: flex; align-items: center; gap: 2px; padding: 0 10px; color: var(--tint); font-size: 17px; }
+  .mailnav svg { width: 12px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .mailhead { flex: none; padding: 6px 16px 14px; border-bottom: 1px solid var(--sep); }
+  .mailhead .subj { font-size: 21px; line-height: 1.25; font-weight: 700; letter-spacing: -.01em; }
+  .mailhead .from { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 15px; }
+  .mailhead .av { flex: none; width: 34px; height: 34px; border-radius: 17px; display: grid; place-items: center;
+                  background: var(--av); color: #fff; font-weight: 600; font-size: 15px; }
+  .mailhead time { margin-left: auto; color: var(--sub); font-size: 14px; }
+  .device iframe { flex: 1; min-height: 0; width: 100%; border: 0; display: block; background: var(--mail); }
+  .home { flex: none; height: 26px; display: flex; align-items: center; justify-content: center; background: var(--mail); }
+  .home::after { content: ""; width: 134px; height: 5px; border-radius: 3px; background: var(--ink); opacity: .85; }
   .bar { display: none; }
 
-  /* Desktop view: full-width mail windows, light above dark. */
-  body[data-view="desktop"] .frames { flex-direction: column; flex-wrap: nowrap; gap: 32px; padding: 0; }
-  body[data-view="desktop"] figure { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #2b3242;
-                                     box-shadow: 0 24px 60px #0008; }
+  /* Desktop view: mail windows sized to the email, light above dark. */
+  body[data-view="desktop"] .frames { flex-direction: column; flex-wrap: nowrap; padding: 0; }
+  body[data-view="desktop"] .device { width: 100%; height: auto; display: block; border-radius: 12px;
+                                      border: 1px solid #2b3242; box-shadow: 0 24px 60px #0008; background: #1a1f2a; }
+  body[data-view="desktop"] .status, body[data-view="desktop"] .mailnav,
+  body[data-view="desktop"] .mailhead, body[data-view="desktop"] .home { display: none; }
   body[data-view="desktop"] .bar { display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px;
-                                   background: #1a1f2a; border-bottom: 1px solid #2b3242; }
-  body[data-view="desktop"] .bar i { width: 11px; height: 11px; border-radius: 6px; background: #3a4254; }
+                                   border-bottom: 1px solid #2b3242; }
+  body[data-view="desktop"] .bar i { width: 11px; height: 11px; border-radius: 6px; }
   body[data-view="desktop"] .bar i:nth-child(1) { background: #ff5f57; }
   body[data-view="desktop"] .bar i:nth-child(2) { background: #febc2e; }
   body[data-view="desktop"] .bar i:nth-child(3) { background: #28c840; }
-  body[data-view="desktop"] figure iframe { width: 100%; border-radius: 0; box-shadow: none; }
 
   .site-footer { border-top: 1px solid var(--line); margin-top: 48px; padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
   .site-footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
@@ -91,7 +113,7 @@
   @media (max-width: 960px) {
     .scenario { grid-template-columns: 1fr; }
     .side { position: static; }
-    figure iframe { width: min(375px, calc(100vw - 66px)); }
+    .device { width: min(375px, calc(100vw - 70px)); }
   }
 </style>
 </head>
@@ -127,25 +149,38 @@
 </div></footer>
 
 <script>
-  // Size each frame to its email; widths change with the view.
-  const frames = [...document.querySelectorAll("iframe")];
-  const fit = (f) => {
-    const d = f.contentDocument;
-    if (!d || !d.body) return;
-    f.style.height = "0px";
-    f.style.height = d.documentElement.scrollHeight + "px";
+  // Phone view: fixed screen, the email scrolls inside with the scrollbar hidden (as on iOS).
+  // Desktop view: frame sized to the email, no inner scrolling at all.
+  const frames = [...document.querySelectorAll(".device iframe")];
+  const css = {
+    phone: "html{scrollbar-width:none;overflow-x:hidden}html::-webkit-scrollbar{display:none}",
+    desktop: "html,body{overflow:hidden!important}",
   };
-  frames.forEach((f) => f.addEventListener("load", () => fit(f)));
+  const apply = (f) => {
+    const d = f.contentDocument;
+    if (!d || !d.head) return;
+    const view = document.body.dataset.view;
+    let s = d.getElementById("preview-css");
+    if (!s) { s = d.createElement("style"); s.id = "preview-css"; d.head.appendChild(s); }
+    s.textContent = css[view];
+    if (view === "desktop") {
+      f.style.height = "0px";
+      f.style.height = Math.ceil(d.documentElement.getBoundingClientRect().height) + "px";
+    } else {
+      f.style.height = "";
+    }
+  };
+  frames.forEach((f) => f.addEventListener("load", () => apply(f)));
 
   const buttons = [...document.querySelectorAll(".seg button")];
   const setView = (view) => {
     document.body.dataset.view = view;
     buttons.forEach((b) => b.classList.toggle("on", b.dataset.view === view));
     try { localStorage.setItem("view", view); } catch (e) {}
-    requestAnimationFrame(() => frames.forEach(fit));
+    frames.forEach(apply);
   };
   buttons.forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
-  addEventListener("resize", () => frames.forEach(fit));
+  addEventListener("resize", () => frames.forEach(apply));
   const wanted = new URLSearchParams(location.search).get("view");
   let saved = null;
   try { saved = localStorage.getItem("view"); } catch (e) {}

@@ -318,21 +318,44 @@ def preheader(body):
     return html.unescape(re.sub(r"\s+", " ", m.group(1))).strip() if m else ""
 
 
+STATUS_ICONS = (
+    '<svg viewBox="0 0 17 11" aria-hidden="true"><rect y="7" width="3" height="4" rx=".8"/><rect x="4.5" y="5" width="3" height="6" rx=".8"/>'
+    '<rect x="9" y="2.5" width="3" height="8.5" rx=".8"/><rect x="13.5" width="3" height="11" rx=".8"/></svg>'
+    '<svg viewBox="0 0 16 11" aria-hidden="true"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.1-1.2A10.4 10.4 0 0 0 8 .5C5.3.5 2.8 1.5.9 3.4L2 4.6a8.6 8.6 0 0 1 6-2.4Zm0 3.4c1.4 0 2.6.5 3.6 1.4l1.1-1.2A7 7 0 0 0 8 3.9a7 7 0 0 0-4.7 1.9l1.1 1.2c1-.9 2.2-1.4 3.6-1.4Zm0 3.4c.5 0 1 .2 1.3.5L8 10.9 6.7 9.5c.3-.3.8-.5 1.3-.5Z"/></svg>'
+    '<svg viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/>'
+    '<rect x="2" y="2" width="19" height="8" rx="1.6"/><path d="M24 4v4c.8-.3 1.4-1.1 1.4-2S24.8 4.3 24 4Z" opacity=".4"/></svg>'
+)
+
+
+def device(sid, mode, title, sender, subject):
+    """One email in a phone mock (phone view) or a mail window (desktop view)."""
+    e = html.escape
+    return f"""
+        <figure class="device {mode}">
+          <div class="bar"><i></i><i></i><i></i></div>
+          <div class="status"><span>9:41</span><span class="island"></span><span class="icons">{STATUS_ICONS}</span></div>
+          <div class="mailnav"><svg viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8"/></svg>Inbox</div>
+          <div class="mailhead"><div class="subj">{e(subject)}</div>
+            <div class="from"><span class="av">{e(sender[0])}</span><b>{e(sender)}</b><time>9:41</time></div></div>
+          <iframe loading="lazy" src="emails/{sid}.{mode}.html" title="{e(title)}, {mode}"></iframe>
+          <div class="home"></div>
+        </figure>"""
+
+
 def card(sid, title, sender, rendered):
     e = html.escape
+    subject = rendered["subject"]
     return f"""
     <article class="scenario" id="{sid}">
       <div class="side">
         <h3>{e(title)}</h3>
         <div class="inbox"><div class="avatar">{e(sender[0])}</div><div class="inbox-text">
           <div class="inbox-top"><b>{e(sender)}</b></div>
-          <div class="inbox-subject">{e(rendered['subject'])}</div>
+          <div class="inbox-subject">{e(subject)}</div>
           <div class="inbox-pre">{e(preheader(rendered['html']))}</div></div></div>
         <div class="links"><a href="emails/{sid}.html">Full width</a><a href="emails/{sid}.txt">Plain text</a></div>
       </div>
-      <div class="frames">
-        <figure><div class="bar"><i></i><i></i><i></i></div><iframe loading="lazy" src="emails/{sid}.light.html" title="{e(title)}, light"></iframe></figure>
-        <figure><div class="bar"><i></i><i></i><i></i></div><iframe loading="lazy" src="emails/{sid}.dark.html" title="{e(title)}, dark"></iframe></figure>
+      <div class="frames">{device(sid, "light", title, sender, subject)}{device(sid, "dark", title, sender, subject)}
       </div>
     </article>"""
 
