@@ -1,0 +1,45 @@
+# Copyright (c) 2026 FYWinds
+#
+# kube-prometheus-stack values. The chart mounts alertmanager.templateFiles at
+# /etc/alertmanager/config/. Supply the template with --set-file instead of
+# pasting it here:
+#
+#   helm upgrade --install kube-prometheus-stack \
+#     prometheus-community/kube-prometheus-stack -n monitoring \
+#     -f kube-prometheus-stack.yaml \
+#     --set-file 'alertmanager.templateFiles.email\.tmpl=alertmanager/email.tmpl'
+#
+# GitOps (Argo CD, Flux): paste email.tmpl under templateFiles as a block
+# scalar (email.tmpl: |-) instead; the chart does not run tpl on it.
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: smtp.example.com:587
+      smtp_from: alerts@example.com
+      smtp_auth_username: alerts@example.com
+      smtp_auth_password_file: /etc/alertmanager/secrets/smtp/password
+      smtp_require_tls: true
+    templates:
+      - /etc/alertmanager/config/*.tmpl
+    route:
+      receiver: email
+      group_by: [alertname, namespace]
+      routes:
+        - receiver: "null"
+          matchers:
+            - alertname = "Watchdog"
+    receivers:
+      - name: email
+        email_configs:
+          - to: you@example.com
+            send_resolved: true
+            headers:
+              Subject: '{{ template "mail.subject" . }}'
+            html: '{{ template "mail.html" . }}'
+            text: '{{ template "mail.text" . }}'
+      - name: "null"
+  alertmanagerSpec:
+    # Secret "smtp" with key "password", mounted at /etc/alertmanager/secrets/smtp/.
+    secrets:
+      - smtp

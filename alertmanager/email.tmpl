@@ -1,0 +1,218 @@
+{{/* Copyright (c) 2026 FYWinds */}}
+{{/*
+  Alertmanager email templates: subject, HTML and plain-text bodies.
+
+  Wire them up in an email receiver:
+    headers:
+      Subject: '{{ template "mail.subject" . }}'
+    html: '{{ template "mail.html" . }}'
+    text: '{{ template "mail.text" . }}'
+
+  Requires Alertmanager >= 0.28 (dict, list, toJson); tested with 0.34.1.
+  Times are shown in UTC. Settings: the $cfg dict at the top of "mail.html".
+*/}}
+
+{{ define "mail.subject" -}}
+{{ $sev := .CommonLabels.severity -}}
+{{ if eq .Status "resolved" }}✅ Resolved{{ else if eq $sev "critical" }}🔴 Critical{{ else if eq $sev "warning" }}🟠 Warning{{ else }}🔵 Firing{{ end -}}
+: {{ .GroupLabels.alertname }}{{ with .GroupLabels.namespace }} · {{ . }}{{ end -}}
+{{ if gt (len .Alerts.Firing) 1 }} ({{ len .Alerts.Firing }}){{ end -}}
+{{ end }}
+
+{{ define "mail.text" -}}
+{{ range .Alerts -}}
+[{{ .Status | toUpper }}] {{ .Labels.alertname }}{{ with .Labels.namespace }} · {{ . }}{{ end }}
+{{ with .Annotations.summary }}{{ . }}
+{{ end }}{{ with .Annotations.description }}{{ . }}
+{{ end }}Started: {{ .StartsAt.UTC.Format "Jan 2 15:04 MST" }}
+{{ range .Labels.SortedPairs }}  {{ .Name }}={{ .Value }}
+{{ end }}
+{{ end -}}
+{{ end }}
+
+{{/* One alert card. Dot: dict "alert" <Alert> "cfg" <settings> "externalURL" <string>. */}}
+{{ define "mail.card" -}}
+{{ $a := .alert -}}{{ $cfg := .cfg -}}
+{{ $firing := eq $a.Status "firing" -}}
+{{ $sev := $a.Labels.severity -}}
+{{ $sevColor := "#2563eb" -}}{{ $sevTint := "#eff6ff" -}}
+{{ if eq $sev "critical" }}{{ $sevColor = "#dc2626" }}{{ $sevTint = "#fef2f2" -}}
+{{ else if eq $sev "warning" }}{{ $sevColor = "#d97706" }}{{ $sevTint = "#fffbeb" }}{{ end -}}
+{{ $accent := $sevColor -}}{{ if not $firing }}{{ $accent = "#16a34a" }}{{ end -}}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card" style="background:#ffffff;border:1px solid #e6e8ec;border-radius:14px;margin:0 0 12px 0;border-collapse:separate;">
+<tr><td style="padding:18px 18px 16px 18px;">
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td style="padding:0 8px 0 0;vertical-align:middle;"><div style="width:8px;height:8px;border-radius:4px;background:{{ $accent }};font-size:0;line-height:0;">&nbsp;</div></td>
+    <td style="vertical-align:middle;font-size:13px;line-height:18px;font-weight:600;color:{{ $accent }};">
+      {{- if $firing }}Firing for {{ reReplaceAll " [0-9.]+s$" "" ((since $a.StartsAt).Seconds | humanizeDuration) }}
+      {{- else }}Resolved after {{ reReplaceAll " [0-9.]+s$" "" (($a.EndsAt.Sub $a.StartsAt).Seconds | humanizeDuration) }}{{ end -}}
+    </td>
+  </tr></table>
+
+  {{ with $a.Annotations.summary -}}
+  <div class="t-strong" style="margin:10px 0 0 0;font-size:17px;line-height:24px;font-weight:600;color:#0f172a;word-break:break-word;">{{ . }}</div>
+  {{- end }}
+  {{ with $a.Annotations.description -}}
+  <div class="t-body" style="margin:6px 0 0 0;font-size:15px;line-height:22px;color:#475569;word-break:break-word;">{{ . }}</div>
+  {{- end }}
+  {{ if and (not $a.Annotations.summary) (not $a.Annotations.description) -}}
+  <div class="t-strong" style="margin:10px 0 0 0;font-size:17px;line-height:24px;font-weight:600;color:#0f172a;">{{ $a.Labels.alertname }}</div>
+  {{- end }}
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:14px 0 0 0;">
+    {{ with $a.Labels.namespace }}<tr>
+      <td class="t-muted" style="width:96px;padding:3px 0;font-size:13px;line-height:20px;color:#94a3b8;vertical-align:top;">Namespace</td>
+      <td class="t-strong" style="padding:3px 0;font-size:14px;line-height:20px;color:#0f172a;word-break:break-all;">{{ . }}</td>
+    </tr>{{ end }}
+    {{ if $a.Labels.pod }}<tr>
+      <td class="t-muted" style="width:96px;padding:3px 0;font-size:13px;line-height:20px;color:#94a3b8;vertical-align:top;">Pod</td>
+      <td class="t-strong" style="padding:3px 0;font-size:14px;line-height:20px;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">{{ $a.Labels.pod }}</td>
+    </tr>{{ else if $a.Labels.instance }}<tr>
+      <td class="t-muted" style="width:96px;padding:3px 0;font-size:13px;line-height:20px;color:#94a3b8;vertical-align:top;">Instance</td>
+      <td class="t-strong" style="padding:3px 0;font-size:14px;line-height:20px;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">{{ $a.Labels.instance }}</td>
+    </tr>{{ end }}
+    {{ with $a.Labels.severity }}<tr>
+      <td class="t-muted" style="width:96px;padding:3px 0;font-size:13px;line-height:20px;color:#94a3b8;vertical-align:top;">Severity</td>
+      <td style="padding:3px 0;font-size:14px;line-height:20px;"><span class="pill" style="display:inline-block;padding:0 8px;border-radius:999px;background:{{ $sevTint }};color:{{ $sevColor }};font-size:12px;line-height:20px;font-weight:600;">{{ . }}</span></td>
+    </tr>{{ end }}
+    <tr>
+      <td class="t-muted" style="width:96px;padding:3px 0;font-size:13px;line-height:20px;color:#94a3b8;vertical-align:top;">Started</td>
+      <td class="t-strong" style="padding:3px 0;font-size:14px;line-height:20px;color:#0f172a;">{{ $a.StartsAt.UTC.Format "Mon Jan 2, 15:04 MST" }}</td>
+    </tr>
+    {{ if not $firing }}<tr>
+      <td class="t-muted" style="width:96px;padding:3px 0;font-size:13px;line-height:20px;color:#94a3b8;vertical-align:top;">Resolved</td>
+      <td class="t-strong" style="padding:3px 0;font-size:14px;line-height:20px;color:#0f172a;">{{ $a.EndsAt.UTC.Format "Mon Jan 2, 15:04 MST" }}</td>
+    </tr>{{ end }}
+  </table>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0 0 0;"><tr>
+    {{ if match "[?&]g0\\.expr=" $a.GeneratorURL -}}
+    {{ if $cfg.grafanaURL -}}
+    {{ $expr := reReplaceAll "^.*[?&]g0\\.expr=([^&]*).*$" "$1" $a.GeneratorURL | urlUnescape -}}
+    {{ $panes := printf "{\"a\":{\"datasource\":\"%s\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"type\":\"prometheus\",\"uid\":\"%s\"},\"expr\":%s}],\"range\":{\"from\":\"now-6h\",\"to\":\"now\"}}}" $cfg.promUID $cfg.promUID (toJson $expr) -}}
+    <td style="padding:0 8px 0 0;"><a class="btn-primary" href="{{ $cfg.grafanaURL }}/explore?schemaVersion=1&amp;orgId=1&amp;panes={{ $panes }}" style="display:inline-block;padding:9px 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:14px;line-height:18px;font-weight:600;text-decoration:none;">Graph</a></td>
+    {{- else -}}
+    <td style="padding:0 8px 0 0;"><a class="btn-primary" href="{{ $a.GeneratorURL }}" style="display:inline-block;padding:9px 14px;border-radius:10px;background:#0f172a;color:#ffffff;font-size:14px;line-height:18px;font-weight:600;text-decoration:none;">Graph</a></td>
+    {{- end }}
+    {{- end }}
+    {{ if $firing -}}
+    {{ if $cfg.grafanaURL -}}
+    <td style="padding:0 8px 0 0;"><a class="btn" href="{{ $cfg.grafanaURL }}/alerting/silence/new?alertmanager={{ $cfg.alertmanagerUID }}&amp;matcher={{ printf "alertname=%s" $a.Labels.alertname }}{{ with $a.Labels.namespace }}&amp;matcher={{ printf "namespace=%s" . }}{{ end }}{{ with $a.Labels.pod }}&amp;matcher={{ printf "pod=%s" . }}{{ end }}" style="display:inline-block;padding:9px 14px;border-radius:10px;background:#f1f5f9;color:#0f172a;font-size:14px;line-height:18px;font-weight:600;text-decoration:none;">Silence</a></td>
+    {{- else -}}
+    {{ $filter := printf "alertname=%q" $a.Labels.alertname -}}
+    {{ with $a.Labels.namespace }}{{ $filter = printf "%s,namespace=%q" $filter . }}{{ end -}}
+    {{ with $a.Labels.pod }}{{ $filter = printf "%s,pod=%q" $filter . }}{{ end -}}
+    <td style="padding:0 8px 0 0;"><a class="btn" href="{{ .externalURL }}/#/silences/new?filter={{ printf "{%s}" $filter }}" style="display:inline-block;padding:9px 14px;border-radius:10px;background:#f1f5f9;color:#0f172a;font-size:14px;line-height:18px;font-weight:600;text-decoration:none;">Silence</a></td>
+    {{- end }}
+    {{- end }}
+    {{ with $a.Annotations.runbook_url -}}
+    <td><a class="btn" href="{{ . }}" style="display:inline-block;padding:9px 14px;border-radius:10px;background:#f1f5f9;color:#0f172a;font-size:14px;line-height:18px;font-weight:600;text-decoration:none;">Runbook</a></td>
+    {{- end }}
+  </tr></table>
+
+  <div class="divider" style="margin:16px 0 10px 0;border-top:1px solid #eef0f3;font-size:0;line-height:0;">&nbsp;</div>
+  <div style="font-size:0;line-height:0;">
+    {{- range $a.Labels.SortedPairs }}{{ $name := .Name }}{{ $hidden := false }}{{ range $cfg.hiddenLabels }}{{ if eq . $name }}{{ $hidden = true }}{{ end }}{{ end }}{{ if not $hidden -}}
+    <span class="chip" style="display:inline-block;margin:0 4px 4px 0;padding:2px 7px;border-radius:6px;background:#f4f5f7;color:#64748b;font-size:11px;line-height:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">{{ .Name }}={{ .Value }}</span>
+    {{- end }}{{ end -}}
+  </div>
+
+</td></tr>
+</table>
+{{- end }}
+
+{{ define "mail.html" -}}
+{{/*
+  Settings.
+    grafanaURL       Base URL of a Grafana with the Prometheus and Alertmanager
+                     datasources. Empty: Graph opens Prometheus (GeneratorURL)
+                     and Silence opens the Alertmanager UI (ExternalURL).
+    promUID          Grafana datasource uid for the Graph button.
+    alertmanagerUID  Grafana datasource uid for Silence and the footer link.
+    hiddenLabels     Labels left out of the label chips.
+*/ -}}
+{{ $cfg := dict
+  "grafanaURL" ""
+  "promUID" "prometheus"
+  "alertmanagerUID" "alertmanager"
+  "hiddenLabels" (list "alertname" "prometheus") -}}
+{{ $sev := .CommonLabels.severity -}}
+{{ $firing := eq .Status "firing" -}}
+{{ $accent := "#2563eb" -}}{{ $tint := "#eff6ff" -}}{{ $label := "Firing" -}}
+{{ if not $firing }}{{ $accent = "#16a34a" }}{{ $tint = "#f0fdf4" }}{{ $label = "Resolved" -}}
+{{ else if eq $sev "critical" }}{{ $accent = "#dc2626" }}{{ $tint = "#fef2f2" }}{{ $label = "Critical" -}}
+{{ else if eq $sev "warning" }}{{ $accent = "#d97706" }}{{ $tint = "#fffbeb" }}{{ $label = "Warning" }}{{ end -}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{ template "mail.subject" . }}</title>
+<style>
+  body { margin:0; padding:0; -webkit-text-size-adjust:100%; }
+  a { text-decoration:none; }
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#0b0d12 !important; }
+    .card, .hero { background:#151922 !important; }
+    .card { border-color:#242a35 !important; }
+    .hero { border-left-color:#242a35 !important; border-right-color:#242a35 !important; border-bottom-color:#242a35 !important; }
+    .t-strong { color:#e7eaf0 !important; }
+    .t-body { color:#a7b0bf !important; }
+    .t-muted { color:#6b7585 !important; }
+    .chip { background:#1d222c !important; color:#8e98a8 !important; }
+    .btn { background:#232a36 !important; color:#e7eaf0 !important; }
+    .btn-primary { background:#e7eaf0 !important; color:#0b0d12 !important; }
+    .divider { border-color:#242a35 !important; }
+    .pill { background:transparent !important; box-shadow:inset 0 0 0 1px currentColor; }
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:#f2f4f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+  {{- with index .Alerts 0 }}{{ or .Annotations.summary .Annotations.description .Labels.alertname }}{{ end -}}
+</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#f2f4f7;">
+<tr><td align="center" style="padding:20px 12px 28px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+
+  <tr><td class="t-muted" style="padding:0 4px 10px 4px;font-size:12px;line-height:16px;letter-spacing:0.06em;text-transform:uppercase;color:#94a3b8;font-weight:600;">Alertmanager</td></tr>
+
+  <tr><td>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="hero" style="background:#ffffff;border:1px solid #e6e8ec;border-top:5px solid {{ $accent }};border-radius:16px;border-collapse:separate;margin:0 0 12px 0;">
+      <tr><td style="padding:18px 18px 20px 18px;">
+        <span class="pill" style="display:inline-block;padding:3px 10px;border-radius:999px;background:{{ $tint }};color:{{ $accent }};font-size:12px;line-height:18px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">{{ if $firing }}● {{ else }}✓ {{ end }}{{ $label }}</span>
+        <div class="t-strong" style="margin:12px 0 0 0;font-size:24px;line-height:30px;font-weight:700;color:#0f172a;word-break:break-word;">{{ .GroupLabels.alertname }}</div>
+        <div class="t-body" style="margin:6px 0 0 0;font-size:14px;line-height:20px;color:#64748b;">
+          {{- with .GroupLabels.namespace }}{{ . }} · {{ end -}}
+          {{- if .Alerts.Firing }}{{ len .Alerts.Firing }} firing{{ if .Alerts.Resolved }}, {{ end }}{{ end -}}
+          {{- if .Alerts.Resolved }}{{ len .Alerts.Resolved }} resolved{{ end -}}
+        </div>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <tr><td>
+    {{- $root := . }}
+    {{- if and .Alerts.Firing .Alerts.Resolved }}<div class="t-muted" style="padding:4px 4px 8px 4px;font-size:12px;line-height:16px;letter-spacing:0.06em;text-transform:uppercase;color:#94a3b8;font-weight:600;">Firing</div>{{ end }}
+    {{- range .Alerts.Firing }}{{ template "mail.card" (dict "alert" . "cfg" $cfg "externalURL" $root.ExternalURL) }}{{ end }}
+    {{- if and .Alerts.Firing .Alerts.Resolved }}<div class="t-muted" style="padding:8px 4px 8px 4px;font-size:12px;line-height:16px;letter-spacing:0.06em;text-transform:uppercase;color:#94a3b8;font-weight:600;">Resolved</div>{{ end }}
+    {{- range .Alerts.Resolved }}{{ template "mail.card" (dict "alert" . "cfg" $cfg "externalURL" $root.ExternalURL) }}{{ end -}}
+  </td></tr>
+
+  <tr><td align="center" class="t-muted" style="padding:8px 4px 0 4px;font-size:12px;line-height:18px;color:#94a3b8;">
+    {{- if $cfg.grafanaURL }}
+    <a href="{{ $cfg.grafanaURL }}/alerting/groups?alertmanager={{ $cfg.alertmanagerUID }}" style="color:#64748b;text-decoration:underline;">All active alerts in Grafana</a>
+    {{- else }}
+    <a href="{{ .ExternalURL }}" style="color:#64748b;text-decoration:underline;">All active alerts in Alertmanager</a>
+    {{- end }}
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+{{- end }}

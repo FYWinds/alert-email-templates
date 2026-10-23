@@ -1,0 +1,155 @@
+<!doctype html>
+<!-- Copyright (c) 2026 FYWinds -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alert email templates · preview</title>
+<meta name="description" content="HTML email templates for Prometheus Alertmanager and Argo CD notifications, rendered by the real amtool and argocd CLIs.">
+<style>
+  :root {
+    --bg: #0b0d12; --panel: #12161f; --line: #222836; --text: #e7eaf0; --muted: #8b95a7;
+    --red: #ef4444; --amber: #f59e0b; --green: #22c55e; --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  a { color: inherit; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .hero::before { content: ""; position: absolute; inset: -40% -10% auto; height: 520px;
+    background: radial-gradient(40% 60% at 20% 40%, #ef444433, transparent 70%),
+                radial-gradient(35% 55% at 55% 30%, #f59e0b26, transparent 70%),
+                radial-gradient(40% 60% at 85% 45%, #22c55e2b, transparent 70%);
+    filter: blur(10px); pointer-events: none; }
+  .hero .wrap { position: relative; padding-top: 72px; padding-bottom: 56px; }
+  h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -.025em; margin: 0 0 16px; max-width: 760px; }
+  h1 span { background: linear-gradient(90deg, var(--red), var(--amber) 50%, var(--green));
+            -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { font-size: 18px; color: #b8c0ce; max-width: 680px; margin: 0 0 28px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px;
+         font-weight: 600; font-size: 14px; text-decoration: none; border: 1px solid var(--line); background: var(--panel); }
+  .btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .btn svg { width: 16px; height: 16px; }
+
+  nav.tabs { position: sticky; top: 0; z-index: 5; background: #0b0d12e6; backdrop-filter: blur(8px);
+             border-bottom: 1px solid var(--line); }
+  nav.tabs .wrap { display: flex; gap: 22px; height: 52px; align-items: center; font-size: 14px; font-weight: 600; }
+  nav.tabs a { text-decoration: none; color: var(--muted); }
+  nav.tabs a:hover { color: var(--text); }
+  nav.tabs .spacer { flex: 1; }
+  .seg { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+  .seg button { font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: 0;
+                padding: 5px 12px; border-radius: 7px; cursor: pointer; }
+  .seg button.on { background: var(--text); color: var(--bg); }
+
+  section { padding: 56px 0 8px; }
+  section > .wrap > h2 { font-size: 28px; letter-spacing: -.015em; margin: 0 0 20px; }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: #1a1f2a; padding: 1px 6px; border-radius: 6px; }
+
+  .scenario { display: grid; grid-template-columns: 280px 1fr; gap: 32px; padding: 32px 0;
+              border-top: 1px solid var(--line); align-items: start; }
+  .side { position: sticky; top: 76px; }
+  .side h3 { margin: 0 0 12px; font-size: 18px; }
+  .inbox { display: flex; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--panel);
+           border: 1px solid var(--line); }
+  .avatar { flex: none; width: 36px; height: 36px; border-radius: 18px; display: grid; place-items: center;
+            font-weight: 700; background: #273043; color: #c9d2e3; }
+  .inbox-text { min-width: 0; }
+  .inbox-top { display: flex; justify-content: space-between; font-size: 13px; }
+  .inbox-subject { font-size: 14px; font-weight: 600; margin-top: 1px; }
+  .inbox-pre { font-size: 13px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2;
+               -webkit-box-orient: vertical; overflow: hidden; }
+  .links { display: flex; gap: 14px; font-size: 13px; margin-top: 12px; }
+  .links a { color: var(--muted); }
+  .links a:hover { color: var(--text); }
+  .frames { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; padding: 9px; }
+  figure { margin: 0; }
+  figure iframe { display: block; width: 375px; height: 640px; border: 0; border-radius: 28px;
+                  background: #f2f4f7; box-shadow: 0 0 0 8px #1a1f2a, 0 0 0 9px #2b3242, 0 24px 60px #0008; }
+  figure:nth-child(2) iframe { background: #0b0d12; }
+  .bar { display: none; }
+
+  /* Desktop view: full-width mail windows, light above dark. */
+  body[data-view="desktop"] .frames { flex-direction: column; flex-wrap: nowrap; gap: 32px; padding: 0; }
+  body[data-view="desktop"] figure { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #2b3242;
+                                     box-shadow: 0 24px 60px #0008; }
+  body[data-view="desktop"] .bar { display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px;
+                                   background: #1a1f2a; border-bottom: 1px solid #2b3242; }
+  body[data-view="desktop"] .bar i { width: 11px; height: 11px; border-radius: 6px; background: #3a4254; }
+  body[data-view="desktop"] .bar i:nth-child(1) { background: #ff5f57; }
+  body[data-view="desktop"] .bar i:nth-child(2) { background: #febc2e; }
+  body[data-view="desktop"] .bar i:nth-child(3) { background: #28c840; }
+  body[data-view="desktop"] figure iframe { width: 100%; border-radius: 0; box-shadow: none; }
+
+  .site-footer { border-top: 1px solid var(--line); margin-top: 48px; padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
+  .site-footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+  @media (max-width: 960px) {
+    .scenario { grid-template-columns: 1fr; }
+    .side { position: static; }
+    figure iframe { width: min(375px, calc(100vw - 66px)); }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero"><div class="wrap">
+  <h1>Alert emails that read well <span>on any screen</span>.</h1>
+  <p class="lead">HTML email templates for Prometheus Alertmanager and Argo CD.</p>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/FYWinds/alert-email-templates"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>View on GitHub</a>
+  </div>
+</div></div>
+
+<nav class="tabs"><div class="wrap">
+  <a href="#alertmanager">Alertmanager</a>
+  <a href="#argocd">Argo CD</a>
+  <span class="spacer"></span>
+  <div class="seg" role="group" aria-label="Preview size"><button data-view="phone" class="on">Phone</button><button data-view="desktop">Desktop</button></div>
+</div></nav>
+
+<section id="alertmanager"><div class="wrap">
+  <h2>Alertmanager</h2>
+  {{ALERTMANAGER}}
+</div></section>
+
+<section id="argocd"><div class="wrap">
+  <h2>Argo CD</h2>
+  {{ARGOCD}}
+</div></section>
+
+<footer class="site-footer"><div class="wrap">
+  <span>© 2026 FYWinds</span>
+</div></footer>
+
+<script>
+  // Size each frame to its email; widths change with the view.
+  const frames = [...document.querySelectorAll("iframe")];
+  const fit = (f) => {
+    const d = f.contentDocument;
+    if (!d || !d.body) return;
+    f.style.height = "0px";
+    f.style.height = d.documentElement.scrollHeight + "px";
+  };
+  frames.forEach((f) => f.addEventListener("load", () => fit(f)));
+
+  const buttons = [...document.querySelectorAll(".seg button")];
+  const setView = (view) => {
+    document.body.dataset.view = view;
+    buttons.forEach((b) => b.classList.toggle("on", b.dataset.view === view));
+    try { localStorage.setItem("view", view); } catch (e) {}
+    requestAnimationFrame(() => frames.forEach(fit));
+  };
+  buttons.forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
+  addEventListener("resize", () => frames.forEach(fit));
+  const wanted = new URLSearchParams(location.search).get("view");
+  let saved = null;
+  try { saved = localStorage.getItem("view"); } catch (e) {}
+  setView(wanted === "desktop" || wanted === "phone" ? wanted : saved || "phone");
+</script>
+</body>
+</html>

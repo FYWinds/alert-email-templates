@@ -1,0 +1,51 @@
+# Copyright (c) 2026 FYWinds
+#
+# Renders every scenario with the real amtool and argocd CLIs, checks the
+# example config and the Argo CD trigger matrix, and publishes the gallery to
+# GitHub Pages from main. Pull requests run the same checks without deploying.
+name: Preview
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install pyyaml
+      - name: Fetch amtool and argocd
+        run: preview/fetch-tools.sh
+      - name: Check config, test triggers, render scenarios
+        run: python preview/build.py
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
