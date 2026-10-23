@@ -131,7 +131,7 @@ python3 -m http.server -d site 8000    # http://localhost:8000
 | Alertmanager | 0.28 (`dict`, `list`, `toJson` template functions) | 0.34.1 |
 | Argo CD | 3.0 (`status.health.lastTransitionTime`) | 3.5.5 |
 
-The HTML is table-based with inline styles; dark mode uses `prefers-color-scheme`, which Apple Mail, iOS Mail and Outlook for Mac honor. Clients without it show the light version.
+The HTML is table-based with inline styles. Dark mode is an `@media (prefers-color-scheme: dark)` block, so it applies in clients that support that media query ([support table](https://www.caniemail.com/features/css-at-media-prefers-color-scheme/)). Clients without it show the light design, or recolor it with their own forced dark mode.
 
 ## License
 
