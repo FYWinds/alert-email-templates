@@ -1,0 +1,10 @@
+{{#*inline "accent"}}#dc2626{{/inline}}
+{{#*inline "tint"}}#fef2f2{{/inline}}
+{{#*inline "status"}}● Failed{{/inline}}
+{{#*inline "headline"}}Certificate renewal failed{{/inline}}
+{{#*inline "subline"}}{{fqdn}}{{/inline}}
+{{#*inline "preheader"}}{{error}}{{/inline}}
+{{#*inline "content"}}
+{{#> card title="Error"}}{{> pre v=error}}{{/card}}
+{{/inline}}
+{{#*inline "actions"}}{{> button path="/#pbsCertificateConfiguration" label="Open certificates"}}{{/inline}}

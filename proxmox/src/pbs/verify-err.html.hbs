@@ -1,0 +1,16 @@
+{{#*inline "accent"}}#dc2626{{/inline}}
+{{#*inline "tint"}}#fef2f2{{/inline}}
+{{#*inline "status"}}● Failed{{/inline}}
+{{#*inline "headline"}}Verification failed{{/inline}}
+{{#*inline "subline"}}{{hostname}} · datastore {{datastore}} · {{len failed-snapshot-list}} snapshot{{#if (ne (len failed-snapshot-list) 1)}}s{{/if}}{{/inline}}
+{{#*inline "preheader"}}{{len failed-snapshot-list}} snapshot{{#if (ne (len failed-snapshot-list) 1)}}s{{/if}} in {{datastore}} failed verification{{/inline}}
+{{#*inline "content"}}
+{{#> card title="Failed snapshots"}}
+{{#each failed-snapshot-list}}<div class="t-strong" style="padding:3px 0;font-size:13px;line-height:20px;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">{{this}}</div>{{/each}}
+{{/card}}
+{{#> card}}{{#> facts}}
+{{> row k="Datastore" v=datastore mono=true}}
+{{> row k="Job" v=job-id mono=true}}
+{{/facts}}{{/card}}
+{{/inline}}
+{{#*inline "actions"}}{{> button path="/#pbsServerAdministration:tasks" label="Open task log"}}{{/inline}}

@@ -1,0 +1,9 @@
+Verify job {{job-id}} on datastore {{datastore}} failed on {{hostname}}.
+
+Failed snapshots
+================
+{{#each failed-snapshot-list}}
+{{this}}
+{{/each}}
+
+Task log: <{{base-url}}/#pbsServerAdministration:tasks>

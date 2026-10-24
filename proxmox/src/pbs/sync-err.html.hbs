@@ -1,0 +1,17 @@
+{{!-- remote is unset for a sync between local datastores. --}}
+{{#*inline "accent"}}#dc2626{{/inline}}
+{{#*inline "tint"}}#fef2f2{{/inline}}
+{{#*inline "status"}}● Failed{{/inline}}
+{{#*inline "headline"}}Sync failed{{/inline}}
+{{#*inline "subline"}}{{hostname}} · {{#if remote}}{{remote}}:{{/if}}{{remote-datastore}} → {{datastore}}{{/inline}}
+{{#*inline "preheader"}}{{error}}{{/inline}}
+{{#*inline "content"}}
+{{#> card title="Error"}}{{> pre v=error}}{{/card}}
+{{#> card}}{{#> facts}}
+{{> row k="Job" v=job-id mono=true}}
+{{#if remote}}{{> row k="Remote" v=remote mono=true}}{{/if}}
+{{> row k="Source" v=remote-datastore mono=true}}
+{{> row k="Datastore" v=datastore mono=true}}
+{{/facts}}{{/card}}
+{{/inline}}
+{{#*inline "actions"}}{{> button path="/#pbsServerAdministration:tasks" label="Open task log"}}{{/inline}}

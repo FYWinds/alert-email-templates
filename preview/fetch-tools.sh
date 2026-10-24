@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Copyright (c) 2026 FYWinds
 #
-# Download the pinned amtool and argocd CLIs into preview/bin/.
-# The preview renders with these, so it matches what the servers send.
+# Download the pinned amtool and argocd CLIs and build proxmox-render (needs
+# cargo) into preview/bin/. The preview renders with these, so it matches what
+# the servers send.
 set -euo pipefail
 
 ALERTMANAGER_VERSION="${ALERTMANAGER_VERSION:-0.34.1}"
@@ -28,3 +29,8 @@ chmod +x "$bin/argocd" "$bin/amtool"
 
 "$bin/amtool" --version 2>&1 | head -n 1
 "$bin/argocd" version --client --short
+
+here="$(cd "$(dirname "$0")" && pwd)"
+cargo build --quiet --release --locked --manifest-path "$here/proxmox-render/Cargo.toml"
+cp "$here/proxmox-render/target/release/proxmox-render" "$bin/"
+echo "proxmox-render built"

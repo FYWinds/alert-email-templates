@@ -1,0 +1,18 @@
+{{#if is-success}}The HA manager fenced node {{failed-node}}{{else}}The HA manager is fencing node {{failed-node}}{{/if}}{{#if cluster-name}} in cluster {{cluster-name}}{{/if}}.
+The node needs manual intervention.
+
+Status:  {{fence-status}}
+Time:    {{timestamp fence-timestamp}}
+Manager: {{master-node}}
+
+Nodes
+=====
+{{#each nodes}}
+{{this.node}}: {{this.status}}
+{{/each}}
+
+HA resources
+============
+{{#each resources}}
+{{this.resource}}: {{this.state}} on {{this.node}}{{#if (eq this.node @root.failed-node)}} (moving){{/if}}
+{{/each}}

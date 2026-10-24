@@ -1,0 +1,14 @@
+Replication job {{job-id}} to {{job-target}} failed on {{fqdn}}.
+
+Schedule:  {{job-schedule}}
+Failures:  {{failure-count}}
+Last sync: {{#if last-sync}}{{timestamp last-sync}}{{else}}never{{/if}}
+{{#if next-sync}}Next try:  {{timestamp next-sync}}
+{{/if}}
+{{#if (eq failure-count 3)}}
+The job looks stuck; failure mails are sent less often from now on.
+{{/if}}
+
+Error
+=====
+{{error}}

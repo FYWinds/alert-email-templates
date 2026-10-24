@@ -1,0 +1,29 @@
+{{#*inline "accent"}}#dc2626{{/inline}}
+{{#*inline "tint"}}#fef2f2{{/inline}}
+{{#*inline "status"}}{{#if is-success}}● Fenced{{else}}● Fencing{{/if}}{{/inline}}
+{{#*inline "headline"}}{{#if is-success}}Node {{failed-node}} fenced{{else}}Fencing node {{failed-node}}{{/if}}{{/inline}}
+{{#*inline "subline"}}{{#if cluster-name}}Cluster {{cluster-name}} · {{/if}}needs manual intervention{{/inline}}
+{{#*inline "preheader"}}{{#if is-success}}The HA manager fenced {{failed-node}}{{else}}The HA manager is fencing {{failed-node}}{{/if}}; its HA resources move to healthy nodes.{{/inline}}
+{{#*inline "content"}}
+{{#> card}}
+{{#> facts}}
+{{> row k="Status" v=fence-status}}
+{{> row k="Time" v=(timestamp fence-timestamp)}}
+{{> row k="Manager" v=master-node}}
+{{/facts}}
+{{/card}}
+{{#> card title="Nodes"}}
+{{#> facts}}
+{{#each nodes}}{{> row k=this.node v=this.status}}{{/each}}
+{{/facts}}
+{{/card}}
+{{#> card title="HA resources"}}
+{{#> facts}}
+{{#each resources}}<tr>
+  <td class="t-strong" style="padding:3px 12px 3px 0;font-size:13px;line-height:20px;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;vertical-align:top;white-space:nowrap;">{{this.resource}}</td>
+  <td class="t-body" style="padding:3px 0;font-size:14px;line-height:20px;color:#64748b;word-break:break-all;">{{this.state}} on {{this.node}}{{#if (eq this.node @root.failed-node)}} <b style="color:#dc2626;">· moving</b>{{/if}}</td>
+</tr>{{/each}}
+{{/facts}}
+{{/card}}
+{{/inline}}
+{{#*inline "actions"}}{{> button path="" label="Open Proxmox VE"}}{{/inline}}

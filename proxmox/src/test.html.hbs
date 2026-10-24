@@ -1,0 +1,11 @@
+{{!-- The test notification carries only "target": no hostname, no fqdn. --}}
+{{#*inline "accent"}}#2563eb{{/inline}}
+{{#*inline "tint"}}#eff6ff{{/inline}}
+{{#*inline "status"}}● Test{{/inline}}
+{{#*inline "headline"}}Test notification{{/inline}}
+{{#*inline "subline"}}Target {{target}}{{/inline}}
+{{#*inline "preheader"}}Notification target {{target}} delivers email.{{/inline}}
+{{#*inline "content"}}
+{{#> card}}{{> message v="If you can read this, the notification target works. Failure emails look like this one, with a red bar."}}{{/card}}
+{{/inline}}
+{{#*inline "actions"}}{{/inline}}

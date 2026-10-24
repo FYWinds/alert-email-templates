@@ -1,0 +1,34 @@
+{{!-- status-text is exactly "backup successful" on success, "backup failed[: <error>]" otherwise. --}}
+{{#*inline "accent"}}{{#if (eq status-text "backup successful")}}#16a34a{{else}}#dc2626{{/if}}{{/inline}}
+{{#*inline "tint"}}{{#if (eq status-text "backup successful")}}#f0fdf4{{else}}#fef2f2{{/if}}{{/inline}}
+{{#*inline "status"}}{{#if (eq status-text "backup successful")}}✓ Finished{{else}}● Failed{{/if}}{{/inline}}
+{{#*inline "headline"}}{{#if (eq status-text "backup successful")}}Backup finished{{else}}Backup failed{{/if}}{{/inline}}
+{{#*inline "subline"}}{{fqdn}} · {{len guest-table.data}} guest{{#if (ne (len guest-table.data) 1)}}s{{/if}} · {{duration total-time}} · {{human-bytes total-size}}{{/inline}}
+{{#*inline "preheader"}}{{status-text}}{{/inline}}
+{{#*inline "content"}}
+{{#if (and (ne status-text "backup successful") (ne status-text "backup failed"))}}
+{{#> card title="Error"}}{{> message v=status-text}}{{/card}}
+{{/if}}
+{{#if error}}
+{{#> card title="Error"}}{{> message v=error}}{{/card}}
+{{/if}}
+{{#> card title="Guests"}}
+{{#each guest-table.data}}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="{{#unless @first}}border-top:1px solid #eef0f3;{{/unless}}" class="divider">
+<tr><td style="padding:{{#if @first}}2px{{else}}12px{{/if}} 0 {{#if @last}}0{{else}}12px{{/if}} 0;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td style="padding:0 8px 0 0;vertical-align:middle;">{{> dot ok=(eq this.status "ok")}}</td>
+    <td class="t-strong" style="vertical-align:middle;font-size:16px;line-height:22px;font-weight:600;color:#0f172a;">{{this.vmid}} · {{this.name}}</td>
+    <td style="padding:0 0 0 8px;vertical-align:middle;">{{> pill ok=(eq this.status "ok") v=this.status}}</td>
+  </tr></table>
+  <div class="t-body" style="margin:4px 0 0 16px;font-size:14px;line-height:20px;color:#64748b;">{{duration this.time}} · {{human-bytes this.size}}</div>
+  {{#if this.filename}}<div class="t-muted" style="margin:2px 0 0 16px;font-size:12px;line-height:18px;color:#94a3b8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">{{this.filename}}</div>{{/if}}
+</td></tr>
+</table>
+{{/each}}
+{{/card}}
+{{#unless (eq status-text "backup successful")}}
+{{#> card title="Log"}}{{> pre v=logs}}{{/card}}
+{{/unless}}
+{{/inline}}
+{{#*inline "actions"}}{{> button path="" label="Open Proxmox VE"}}{{/inline}}

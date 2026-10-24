@@ -23,14 +23,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v10
         with:
           python-version: "3.13"
-      - run: pip install pyyaml
-      - name: Fetch amtool and argocd
+          enable-cache: true
+          cache-dependency-glob: preview/build.py
+      # amtool, argocd and proxmox-render; versions are pinned in these files.
+      - id: tools
+        uses: actions/cache@v6
+        with:
+          path: preview/bin
+          key: tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('preview/fetch-tools.sh', 'preview/proxmox-render/Cargo.*', 'preview/proxmox-render/src/**') }}
+      - name: Fetch amtool and argocd, build proxmox-render
+        if: steps.tools.outputs.cache-hit != 'true'
         run: preview/fetch-tools.sh
       - name: Check config, test triggers, render scenarios
-        run: python preview/build.py
+        run: uv run preview/build.py
+      - name: Generated Proxmox templates are committed
+        run: git diff --exit-code -- proxmox/ && test -z "$(git status --porcelain -- proxmox/)"
       - if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:

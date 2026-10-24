@@ -1,0 +1,21 @@
+{{#*inline "accent"}}#dc2626{{/inline}}
+{{#*inline "tint"}}#fef2f2{{/inline}}
+{{#*inline "status"}}● Failed{{/inline}}
+{{#*inline "headline"}}Replication failed{{/inline}}
+{{#*inline "subline"}}{{fqdn}} · job {{job-id}} → {{job-target}}{{/inline}}
+{{#*inline "preheader"}}Replication job {{job-id}} to {{job-target}} failed {{failure-count}} time{{#if (ne failure-count 1)}}s{{/if}}{{/inline}}
+{{#*inline "content"}}
+{{#> card title="Error"}}{{> pre v=error}}{{/card}}
+{{#> card}}
+{{#> facts}}
+{{> row k="Job" v=job-id mono=true}}
+{{> row k="Target" v=job-target}}
+{{> row k="Schedule" v=job-schedule mono=true}}
+{{> row k="Failures" v=failure-count}}
+{{#if last-sync}}{{> row k="Last sync" v=(timestamp last-sync)}}{{else}}{{> row k="Last sync" v="never"}}{{/if}}
+{{#if next-sync}}{{> row k="Next try" v=(timestamp next-sync)}}{{/if}}
+{{/facts}}
+{{#if (eq failure-count 3)}}<div class="t-body" style="margin:10px 0 0 0;font-size:14px;line-height:20px;color:#64748b;">The job looks stuck; failure mails are sent less often from now on.</div>{{/if}}
+{{/card}}
+{{/inline}}
+{{#*inline "actions"}}{{> button path="" label="Open Proxmox VE"}}{{/inline}}

@@ -1,0 +1,11 @@
+{{#*inline "accent"}}#dc2626{{/inline}}
+{{#*inline "tint"}}#fef2f2{{/inline}}
+{{#*inline "status"}}● Failed{{/inline}}
+{{#*inline "headline"}}Garbage collection failed{{/inline}}
+{{#*inline "subline"}}{{hostname}} · datastore {{datastore}}{{/inline}}
+{{#*inline "preheader"}}{{error}}{{/inline}}
+{{#*inline "content"}}
+{{#> card title="Error"}}{{> pre v=error}}{{/card}}
+{{#> card}}{{#> facts}}{{> row k="Datastore" v=datastore mono=true}}{{/facts}}{{/card}}
+{{/inline}}
+{{#*inline "actions"}}{{> button path="/#pbsServerAdministration:tasks" label="Open task log"}}{{/inline}}

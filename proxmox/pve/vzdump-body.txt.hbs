@@ -1,0 +1,20 @@
+{{#if (eq status-text "backup successful")}}Backup finished on {{fqdn}}{{else}}Backup FAILED on {{fqdn}}{{/if}}
+{{status-text}}
+{{#if error}}
+
+{{error}}
+{{/if}}
+
+{{#each guest-table.data}}
+[{{this.status}}] {{this.vmid}} {{this.name}}: {{duration this.time}}, {{human-bytes this.size}}
+{{#if this.filename}}     {{this.filename}}
+{{/if}}
+{{/each}}
+
+Total: {{duration total-time}}, {{human-bytes total-size}}
+{{#unless (eq status-text "backup successful")}}
+
+Log
+===
+{{logs}}
+{{/unless}}

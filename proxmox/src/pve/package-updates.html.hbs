@@ -1,0 +1,19 @@
+{{#*inline "accent"}}#2563eb{{/inline}}
+{{#*inline "tint"}}#eff6ff{{/inline}}
+{{#*inline "status"}}● Updates{{/inline}}
+{{#*inline "headline"}}{{len available-updates.data}} package update{{#if (ne (len available-updates.data) 1)}}s{{/if}}{{/inline}}
+{{#*inline "subline"}}{{fqdn}}{{/inline}}
+{{#*inline "preheader"}}{{#each available-updates.data}}{{#unless @first}}, {{/unless}}{{this.package-name}}{{/each}}{{/inline}}
+{{#*inline "content"}}
+{{#> card}}
+{{#each available-updates.data}}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="{{#unless @first}}border-top:1px solid #eef0f3;{{/unless}}" class="divider">
+<tr><td style="padding:{{#if @first}}0{{else}}8px{{/if}} 0 {{#if @last}}0{{else}}8px{{/if}} 0;">
+  <div class="t-strong" style="font-size:14px;line-height:20px;font-weight:600;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">{{this.package-name}}</div>
+  <div class="t-body" style="font-size:13px;line-height:18px;color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">{{this.installed-version}} → {{this.available-version}}</div>
+</td></tr>
+</table>
+{{/each}}
+{{/card}}
+{{/inline}}
+{{#*inline "actions"}}{{> button path="" label="Open Proxmox VE"}}{{/inline}}
